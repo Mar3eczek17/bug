@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.urls import path, reverse_lazy
 from . import views
-from django.views.generic.edit import CreateView
+from django.views.generic.edit import CreateView, DeleteView
 from django.contrib.auth import views as auth_views
 from django.views.generic import ListView
 
@@ -34,4 +34,17 @@ urlpatterns = [
         views.DodajWiadomosc.as_view(),
         login_url='/loguj'),
          name='dodaj'),
+    path('edytuj/<int:pk>/', login_required(
+        views.EdytujWiadomosc.as_view(),
+        login_url='/loguj'),
+        name='edytuj'),
+    # path('edytuj/<int:pk>/', views.EdytujWiadomosc.as_view, name='edytuj'),
+    path('usun/<int:pk>/', login_required(
+        DeleteView.as_view(
+            model=Wiadomosc,
+            template_name='blog_app/wiadomosc_usun.html',
+            success_url='/blog_app/wiadomosci'),
+        login_url='/loguj'),
+        name='usun'),
+
 ]

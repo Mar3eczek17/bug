@@ -1,4 +1,4 @@
-<!-- czat/wiadomosc_list.html -->
+<!-- templates/czat/wiadomosc_list.html -->
 <html>
   <body>
     <h1>Wiadomości</h1>
@@ -14,10 +14,14 @@
     <h2>Lista wiadomości:</h2>
     <ol>
       {% for wiadomosc in wiadomosci %}
-      <li>
-        <strong>{{ wiadomosc.author.username }}</strong> ({{ wiadomosc.created_date }}):
-        <br /> {{ wiadomosc.tekst }}
-      </li>
+        <li>
+          <strong>{{ wiadomosc.author }}</strong> ({{ wiadomosc.created_date }}):
+          <br /> {{ wiadomosc.tekst }}
+          {% if wiadomosc.author.name == user.name %}
+          &bull; <a href="{% url 'blog_app:edytuj' wiadomosc.id %}">Edytuj</a>
+          &bull; <a href="{% url 'blog_app:usun' wiadomosc.id %}">Usuń</a>
+          {% endif %}
+        </li>
       {% endfor %}
     </ol>
 
