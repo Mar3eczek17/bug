@@ -5,34 +5,15 @@ from django.contrib.auth import login
 from django.urls import reverse
 from django.contrib import messages
 from .models import Wiadomosc
+from django.utils import timezone
+
 
 # Create your views here.
+from django.views.generic import CreateView
+
+
 def home(request):
-    # if request.method == "POST":
-    #     logout(request)
-    #     redirect('blog_app:home')
-    #
-    # return render(
-    #     request,
-    #     'blog_app/home.html',
-    # )
     return render(request, 'blog_app/home.html')
-
-
-# def login_view(request):
-#     if request.method == "POST":
-#         data = request.POST
-#         user = authenticate(
-#             username=data.get('user'),
-#             password=data.get('password')
-#         )
-#         if user:
-#             login(request, user=user)
-#         return redirect('blog_app:home')
-#     return render(
-#         request,
-#         "blog_app/login.html"
-#     )
 
 
 def login_view(request):
@@ -47,6 +28,19 @@ def login_view(request):
 
     kontekst = {'form': AuthenticationForm()}
     return render(request, 'blog_app/login.html', kontekst)
+
+
+def zaloguj(request):
+    from django.contrib.auth.forms import AuthenticationForm
+    if request.method == 'POST':
+        form = AuthenticationForm(request, request.POST)
+        if form.is_valid():
+            login(request, form.get_user())
+            messages.success(request, "Zostałeś zalogowany!")
+            return redirect(reverse('blog_app:home'))
+
+    kontekst = {'form': AuthenticationForm()}
+    return render(request, 'blog_app/zaloguj.html', kontekst)
 
 
 def wyloguj(request):
@@ -72,22 +66,27 @@ def register(request):
     )
 
 
-def wiadomosci(request):
-    """Dodawanie i wyświetlanie wiadomości"""
-    if request.method == 'POST':
-        tekst = request.POST.get('tekst', '')
-        if not 0 < len(tekst) <= 250:
-            messages.error(
-                request,
-                "Wiadomość nie może być pusta, może mieć maks. 250 znaków!")
-        else:
-            wiadomosc = Wiadomosc(
-                tekst=tekst,
-                author=request.user)
-            wiadomosc.save()
-            return redirect(reverse('blog_app:wiadomosci'))
+class DodajWiadomosc(CreateView):
+    model = Wiadomosc
+    fields = ['tekst', 'created_date']
+    context_object_name = 'wiadomosci'
+    success_url = '/blog_app/dodaj'
 
-    wiadomosci = Wiadomosc.objects.all()
-    kontekst = {'wiadomosci': wiadomosci}
-    return render(request, 'blog_app/wiadomosci.html', kontekst)
+    def get_initial(self):
+        initial = super(DodajWiadomosc, self).get_initial()
+        initial['created_date'] = timezone.now()
+        return initial
+
+    def get_context_data(self, **kwargs):
+        context = super(DodajWiadomosc, self).get_context_data(**kwargs)
+        context['wiadomosci'] = Wiadomosc.objects.all()
+        return context
+
+    def form_valid(self, form):
+        wiadomosc = form.save(commit=False)
+        wiadomosc.autor = self.request.user
+        wiadomosc.save()
+        messages.success(self.request, "Dodano wiadomość!")
+        return super(DodajWiadomosc, self).form_valid(form)
+
 

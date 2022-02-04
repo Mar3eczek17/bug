@@ -7,7 +7,7 @@ class Wiadomosc(models.Model):
 
     """Klasa reprezentująca wiadomość w systemie"""
     tekst = models.CharField('treść wiadomości', max_length=250)
-    created_date = models.DateTimeField('data publikacji', auto_now_add=True)
+    created_date = models.DateTimeField('data publikacji')
     author = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
 
     class Meta:
